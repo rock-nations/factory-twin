@@ -1,0 +1,59 @@
+<div
+  class="resizer"
+  role="separator"
+  aria-orientation="vertical"
+  aria-label="Resize chat"
+  tabindex="0"
+  title="Drag to resize"
+  data-testid="chat-resizer"
+  (pointerdown)="startResize($event)"
+  (pointermove)="resize($event)"
+  (keydown)="onResizeKey($event)"
+></div>
+
+<header>
+  <mat-icon>forum</mat-icon>
+  <h3>Factory Copilot</h3>
+  <app-status-dot [tone]="tone()" />
+  <span class="conn dim">{{ chat.connection() }}</span>
+  <span class="spacer"></span>
+  <button type="button" class="link" (click)="ui.toggleChatWide()" [attr.aria-label]="wide() ? 'Narrow chat' : 'Widen chat'"
+          [title]="wide() ? 'Narrow chat' : 'Widen chat'" data-testid="chat-widen">
+    <mat-icon>{{ wide() ? 'close_fullscreen' : 'open_in_full' }}</mat-icon>
+  </button>
+  <button type="button" class="link" (click)="samplesOpen.set(!samplesOpen())" [disabled]="!chat.messages().length"
+          [attr.aria-pressed]="samplesOpen()" data-testid="samples-toggle">
+    <mat-icon>quiz</mat-icon> Samples
+  </button>
+  <button type="button" class="link" (click)="chat.clear()" [disabled]="!chat.messages().length">Clear</button>
+</header>
+
+<div class="list" #list data-testid="message-list">
+  @if (showSamples()) {
+    <div class="empty" data-testid="suggestions">
+      <p class="dim">Ask about the factory in plain language, or pick a sample question:</p>
+      <app-sample-questions [disabled]="chat.connection() !== 'open' || chat.busy()" (ask)="send($event)" (edit)="editSample($event)" />
+    </div>
+  } @else {
+    @for (m of chat.messages(); track m.id) {
+      <app-chat-message [message]="m" (action)="send($event)" />
+    }
+  }
+</div>
+
+<form class="composer" (submit)="$event.preventDefault(); send()">
+  <textarea
+    #input
+    rows="2"
+    name="message"
+    placeholder="Ask about machines, alarms, procedures…"
+    [ngModel]="text()"
+    (ngModelChange)="text.set($event)"
+    (keydown)="onKey($event)"
+    aria-label="Message"
+    data-testid="composer"
+  ></textarea>
+  <button type="submit" [disabled]="chat.busy() || !text().trim()" aria-label="Send" data-testid="send">
+    <mat-icon>send</mat-icon>
+  </button>
+</form>

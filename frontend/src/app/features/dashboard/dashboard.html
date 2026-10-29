@@ -1,0 +1,65 @@
+<div class="page">
+  <header class="summary">
+    <div class="totals" data-testid="totals">
+      @for (s of statuses; track s) {
+        <div class="chip" [class]="s">
+          <span class="n mono">{{ store.totals()[s] }}</span>
+          <span class="l">{{ s }}</span>
+        </div>
+      }
+    </div>
+    <div class="sim" [class]="store.simStatus().state" data-testid="sim-summary">
+      <span class="dot"></span>
+      simulator {{ store.simStatus().state }}
+      @if (store.simStatus().sim_time; as t) {
+        <span class="mono dim">· {{ t.slice(0, 16).replace('T', ' ') }}</span>
+      }
+    </div>
+  </header>
+
+  @if (store.loadError(); as err) {
+    <p class="error">{{ err }}</p>
+  } @else if (!store.loaded()) {
+    <p class="dim">Loading factory…</p>
+  }
+
+  @for (plant of store.plants(); track plant.id) {
+    <section class="plant">
+      <h2>
+        {{ plant.name }}
+        <span class="dim">{{ plant.location }}</span>
+        <span class="counts mono">
+          @for (s of statuses; track s) {
+            @if (plant.counts[s]) {
+              <span [class]="s">{{ plant.counts[s] }} {{ s }}</span>
+            }
+          }
+        </span>
+      </h2>
+      @for (line of plant.lines; track line.id) {
+        <div class="line">
+          <div class="line-label">
+            <span class="mono">{{ line.id }}</span>
+            <span class="dim">{{ line.machines.length }}</span>
+          </div>
+          <div class="tiles">
+            @for (m of line.machines; track m.id) {
+              <a class="tile" [class]="m.status" [routerLink]="['/machines', m.id]" [attr.data-testid]="'tile-' + m.id">
+                <span class="id mono">{{ m.id }}</span>
+                <span class="model dim">{{ m.model }}</span>
+                <app-sparkline class="spark" [values]="store.vibrationHistory()[m.id] ?? []" />
+                <span class="vib mono">
+                  @if (vibration(m); as v) {
+                    {{ v | number: '1.1-1' }}
+                  } @else {
+                    —
+                  }
+                </span>
+              </a>
+            }
+          </div>
+        </div>
+      }
+    </section>
+  }
+</div>

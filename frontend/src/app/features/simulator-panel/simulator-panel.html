@@ -1,0 +1,64 @@
+<div class="page">
+  <h2>Simulator</h2>
+
+  <section class="card status" data-testid="sim-status">
+    <div class="state" [class]="status().state">
+      <span class="dot"></span>
+      <strong data-testid="sim-state">{{ status().state }}</strong>
+    </div>
+    <dl>
+      <dt>Speed</dt><dd class="mono">{{ status().speed }} h/s</dd>
+      <dt>Simulated time</dt><dd class="mono">{{ status().sim_time ?? '—' }}</dd>
+      <dt>Mode</dt><dd>{{ status().loop ? 'loop' : 'single pass' }}</dd>
+    </dl>
+    <div class="buttons">
+      <button mat-flat-button (click)="start()" [disabled]="running() || busy()" data-testid="start">Start</button>
+      <button mat-stroked-button (click)="stop()" [disabled]="!running() || busy()" data-testid="stop">Stop</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h3>Speed</h3>
+    <div class="row">
+      <input type="range" min="0.1" max="20" step="0.1" [ngModel]="speed()" (ngModelChange)="speed.set(+$event)" name="speed" aria-label="Speed" />
+      <span class="mono">{{ speed() }} sim-hours / s</span>
+      <button mat-stroked-button (click)="applySpeed()" [disabled]="busy()">Apply</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h3>Inject anomaly</h3>
+    <form class="grid" (submit)="$event.preventDefault(); inject()">
+      <label>Machine
+        <input class="mono" list="machines" name="machine" [ngModel]="machine()" (ngModelChange)="machine.set($event)" data-testid="inject-machine" />
+        <datalist id="machines">
+          @for (id of machineIds(); track id) { <option [value]="id"></option> }
+        </datalist>
+      </label>
+      <label>Sensor
+        <select name="sensor" [ngModel]="sensor()" (ngModelChange)="sensor.set($event)" data-testid="inject-sensor">
+          @for (s of sensors; track s) { <option [value]="s">{{ s }}</option> }
+        </select>
+      </label>
+      <label>Magnitude (σ)
+        <input type="number" step="0.5" min="-10" max="10" name="magnitude" [ngModel]="magnitude()" (ngModelChange)="magnitude.set(+$event)" />
+      </label>
+      <label>Duration (s)
+        <input type="number" step="10" min="1" max="3600" name="duration" [ngModel]="duration()" (ngModelChange)="duration.set(+$event)" />
+      </label>
+      <button mat-flat-button type="submit" [disabled]="!running() || !validMachine() || busy()" data-testid="inject">Inject anomaly</button>
+    </form>
+    @if (!running()) {
+      <p class="hint">Start the simulator to inject an anomaly. A 4σ shift raises an alarm after three readings.</p>
+    }
+  </section>
+
+  <section class="card">
+    <h3>Reset live state</h3>
+    <p class="hint">Deletes alarms and simulator error events and sets every machine back to running. The graph structure, Kaggle history and documents are not touched.</p>
+    <button mat-stroked-button (click)="reset()" [disabled]="running() || busy()" data-testid="reset" [class.confirm]="confirmReset()">
+      {{ confirmReset() ? 'Click again to confirm' : 'Reset live state' }}
+    </button>
+    @if (running()) { <span class="hint"> Stop the simulator first.</span> }
+  </section>
+</div>

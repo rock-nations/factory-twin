@@ -1,0 +1,93 @@
+<details class="trace" data-testid="trace-panel">
+  <summary>
+    <span class="title">How I answered</span>
+    <app-route-badge [route]="trace().route" />
+    <span class="meta mono">{{ trace().total_latency_ms }} ms · ~${{ trace().cost_usd | number: '1.4-4' }}</span>
+  </summary>
+
+  <div class="body">
+    <dl class="stats">
+      <dt>Latency</dt>
+      <dd class="mono">
+        {{ trace().total_latency_ms }} ms
+        <span class="dim">
+          (plan {{ trace().step_latency_ms['orchestrate'] ?? 0 }} · tools {{ trace().step_latency_ms['tools'] ?? 0 }} · answer {{ trace().step_latency_ms['answer'] ?? 0 }})
+        </span>
+      </dd>
+      <dt>Tokens</dt>
+      <dd class="mono">{{ trace().input_tokens }} in / {{ trace().output_tokens }} out</dd>
+      <dt>Est. cost</dt>
+      <dd class="mono">${{ trace().cost_usd | number: '1.5-5' }}</dd>
+      <dt>Tool rounds</dt>
+      <dd class="mono">{{ trace().rounds }}</dd>
+    </dl>
+
+    @for (tool of trace().tools; track $index) {
+      <section class="tool" [class.failed]="tool.error">
+        <h4>
+          <span class="n">{{ $index + 1 }}</span>
+          <span class="mono">{{ tool.name }}</span>
+          <span class="dim">{{ tool.latency_ms }} ms</span>
+        </h4>
+        <div class="args mono dim">{{ args(tool) }}</div>
+        <div class="summary">{{ tool.summary }}</div>
+        @if (tool.retrieval_scores.length) {
+          <div class="dim">similarity: <span class="mono">{{ tool.retrieval_scores.join(', ') }}</span></div>
+        }
+        @if (tool.cypher; as cypher) {
+          <div class="code">
+            <button type="button" class="copy" (click)="copy(cypher)">{{ copied() === cypher ? 'Copied' : 'Copy' }}</button>
+            <pre><code data-testid="cypher">{{ cypher }}</code></pre>
+          </div>
+        }
+        @if (tool.preview_rows.length) {
+          <div class="tablewrap">
+            <table>
+              <thead>
+                <tr>@for (c of columns(tool.preview_rows); track c) { <th>{{ c }}</th> }</tr>
+              </thead>
+              <tbody>
+                @for (row of tool.preview_rows; track $index) {
+                  <tr>@for (c of columns(tool.preview_rows); track c) { <td class="mono">{{ cell(row[c]) }}</td> }</tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          @if ((tool.row_count ?? 0) > tool.preview_rows.length) {
+            <div class="dim">showing {{ tool.preview_rows.length }} of {{ tool.row_count }} rows</div>
+          }
+        }
+      </section>
+    }
+
+    @if (trace().tools.length === 0) {
+      <p class="dim">No tools were needed for this answer.</p>
+    }
+
+    <h4 class="sources-h">Sources</h4>
+    <ol class="sources">
+      @for (tool of trace().tools; track $index) {
+        @for (s of tool.sources; track s.ref + s.title) {
+          <li value="{{ s.ref }}">
+            [{{ s.ref }}] {{ s.title }}
+            <span class="dim">· {{ s.doc_type ?? s.kind }}</span>
+          </li>
+        }
+      } @empty {
+        <li class="dim">none</li>
+      }
+    </ol>
+
+    <h4 class="sources-h">Model calls</h4>
+    <table class="calls">
+      <thead><tr><th>step</th><th>model</th><th>in</th><th>out</th><th>cached</th><th>ms</th></tr></thead>
+      <tbody>
+        @for (c of trace().llm_calls; track $index) {
+          <tr class="mono">
+            <td>{{ c.step }}</td><td>{{ c.model }}</td><td>{{ c.input_tokens }}</td><td>{{ c.output_tokens }}</td><td>{{ c.cached_tokens }}</td><td>{{ c.latency_ms }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</details>

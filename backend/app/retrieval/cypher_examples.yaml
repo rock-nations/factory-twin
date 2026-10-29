@@ -1,0 +1,206 @@
+# Few-shot examples for Text2Cypher. Every query is executed in the test-suite against the
+# fixture graph, so keep them valid against schema_for_llm.md.
+- question: Which machines on line A2 have open alarms?
+  cypher: |
+    MATCH (:ProductionLine {id: 'A2'})-[:HAS_MACHINE]->(m:Machine)<-[:RAISED_ON]-(a:Alarm {status: 'open'})
+    RETURN m.id AS machine, a.severity AS severity, a.sensor_type AS sensor, a.value AS value, a.ts AS raised_at
+    ORDER BY a.ts DESC
+
+- question: How many machines are on each production line?
+  cypher: |
+    MATCH (l:ProductionLine)-[:HAS_MACHINE]->(m:Machine)
+    RETURN l.id AS line, count(m) AS machines
+    ORDER BY line
+
+- question: List the machines currently in alarm status.
+  cypher: |
+    MATCH (m:Machine {status: 'alarm'})
+    RETURN m.id AS machine, m.age AS age
+    ORDER BY machine
+
+- question: How many machines are there per status?
+  cypher: |
+    MATCH (m:Machine)
+    RETURN m.status AS status, count(m) AS machines
+    ORDER BY machines DESC
+
+- question: How many failures per component type in 2015?
+  cypher: |
+    MATCH (f:Failure)-[:FAILED]->(c:Component)
+    WHERE f.ts.year = 2015
+    RETURN c.name AS component, count(f) AS failures
+    ORDER BY failures DESC
+
+- question: Which technician performed the most replacements?
+  cypher: |
+    MATCH (e:MaintenanceEvent)-[:PERFORMED_BY]->(t:Technician)
+    RETURN t.name AS technician, count(e) AS replacements
+    ORDER BY replacements DESC
+    LIMIT 1
+
+- question: Top 3 technicians by number of failure repairs.
+  cypher: |
+    MATCH (e:MaintenanceEvent {reason: 'failure'})-[:PERFORMED_BY]->(t:Technician)
+    RETURN t.name AS technician, count(e) AS repairs
+    ORDER BY repairs DESC
+    LIMIT 3
+
+- question: List machines older than 15 years with a critical alarm.
+  cypher: |
+    MATCH (m:Machine)<-[:RAISED_ON]-(a:Alarm {severity: 'critical', status: 'open'})
+    WHERE m.age > 15
+    RETURN DISTINCT m.id AS machine, m.age AS age, a.sensor_type AS sensor
+    ORDER BY m.age DESC
+
+- question: What machines are downstream of M017 within 3 hops?
+  cypher: |
+    MATCH p = (:Machine {id: 'M017'})-[:FEEDS_INTO*1..3]->(d:Machine)
+    RETURN d.id AS machine, min(length(p)) AS hops
+    ORDER BY hops, machine
+
+- question: Which machines feed into M030, up to 2 hops upstream?
+  cypher: |
+    MATCH p = (u:Machine)-[:FEEDS_INTO*1..2]->(:Machine {id: 'M030'})
+    RETURN u.id AS machine, min(length(p)) AS hops
+    ORDER BY hops, machine
+
+- question: If M030 goes down, which production lines are affected?
+  cypher: |
+    MATCH (:Machine {id: 'M030'})-[:FEEDS_INTO*1..]->(d:Machine)<-[:HAS_MACHINE]-(l:ProductionLine)
+    RETURN l.id AS line, collect(DISTINCT d.id) AS affected_machines
+    ORDER BY line
+
+- question: Which machines feed into a different production line?
+  cypher: |
+    MATCH (l1:ProductionLine)-[:HAS_MACHINE]->(a:Machine)-[:FEEDS_INTO]->(b:Machine)<-[:HAS_MACHINE]-(l2:ProductionLine)
+    WHERE l1 <> l2
+    RETURN a.id AS from_machine, l1.id AS from_line, b.id AS to_machine, l2.id AS to_line
+
+- question: When was M042's hydraulic pump last replaced?
+  cypher: |
+    MATCH (:Machine {id: 'M042'})-[:HAS_COMPONENT]->(c:Component {type: 'comp2'})
+    RETURN c.name AS component, c.last_replaced_at AS last_replaced
+
+- question: Show the last 5 maintenance events on machine 17.
+  cypher: |
+    MATCH (e:MaintenanceEvent)-[:PERFORMED_ON]->(:Machine {id: 'M017'})
+    MATCH (e)-[:REPLACED]->(c:Component)
+    OPTIONAL MATCH (e)-[:PERFORMED_BY]->(t:Technician)
+    RETURN e.ts AS ts, c.name AS component, e.reason AS reason, t.name AS technician
+    ORDER BY e.ts DESC
+    LIMIT 5
+
+- question: How many errors of each type occurred on model3 machines?
+  cypher: |
+    MATCH (e:ErrorEvent)-[:OF_TYPE]->(t:ErrorType), (e)-[:OCCURRED_ON]->(:Machine)-[:IS_MODEL]->(:MachineModel {id: 'model3'})
+    RETURN t.id AS error, t.description AS description, count(e) AS occurrences
+    ORDER BY occurrences DESC
+
+- question: Which 5 machines had the most failures?
+  cypher: |
+    MATCH (f:Failure)-[:OCCURRED_ON]->(m:Machine)
+    RETURN m.id AS machine, count(f) AS failures
+    ORDER BY failures DESC, machine
+    LIMIT 5
+
+- question: What is the average machine age per model?
+  cypher: |
+    MATCH (m:Machine)-[:IS_MODEL]->(mm:MachineModel)
+    RETURN mm.id AS model, round(avg(m.age), 1) AS avg_age, count(m) AS machines
+    ORDER BY model
+
+- question: How many errors occurred in March 2015?
+  cypher: |
+    MATCH (e:ErrorEvent)
+    WHERE e.ts >= datetime('2015-03-01') AND e.ts < datetime('2015-04-01')
+    RETURN count(e) AS errors
+
+- question: Which alarms were raised in the last 24 hours?
+  cypher: |
+    MATCH (a:Alarm)-[:RAISED_ON]->(m:Machine)
+    WHERE a.ts >= datetime() - duration('PT24H')
+    RETURN a.id AS alarm, m.id AS machine, a.severity AS severity, a.sensor_type AS sensor, a.status AS status, a.ts AS raised_at
+    ORDER BY a.ts DESC
+
+- question: Show the current sensor readings for M017 with their thresholds.
+  cypher: |
+    MATCH (:Machine {id: 'M017'})-[:HAS_SENSOR]->(s:Sensor)
+    RETURN s.type AS sensor, s.latest_value AS value, s.unit AS unit, s.warn_high AS warn_high, s.crit_high AS crit_high, s.latest_ts AS as_of
+    ORDER BY sensor
+
+- question: Which sensors are currently above their warning threshold?
+  cypher: |
+    MATCH (m:Machine)-[:HAS_SENSOR]->(s:Sensor)
+    WHERE s.latest_value IS NOT NULL AND s.latest_value > s.warn_high
+    RETURN m.id AS machine, s.type AS sensor, s.latest_value AS value, s.warn_high AS warn_high
+    ORDER BY s.latest_value - s.warn_high DESC
+
+- question: How many open alarms does each plant have?
+  cypher: |
+    MATCH (p:Plant)-[:HAS_LINE]->(:ProductionLine)-[:HAS_MACHINE]->(:Machine)<-[:RAISED_ON]-(a:Alarm {status: 'open'})
+    RETURN p.name AS plant, count(a) AS open_alarms
+    ORDER BY open_alarms DESC
+
+- question: Which production lines have the most machines in warning or alarm status?
+  cypher: |
+    MATCH (l:ProductionLine)-[:HAS_MACHINE]->(m:Machine)
+    WHERE m.status IN ['warning', 'alarm']
+    RETURN l.id AS line, count(m) AS machines_affected
+    ORDER BY machines_affected DESC
+
+- question: What is the last machine on line B3?
+  cypher: |
+    MATCH (:ProductionLine {id: 'B3'})-[r:HAS_MACHINE]->(m:Machine)
+    RETURN m.id AS machine, r.position AS position
+    ORDER BY r.position DESC
+    LIMIT 1
+
+- question: What did technician Anna Keller replace, by component?
+  cypher: |
+    MATCH (:Technician {name: 'Anna Keller'})<-[:PERFORMED_BY]-(e:MaintenanceEvent)-[:REPLACED]->(c:Component)
+    RETURN c.name AS component, count(e) AS replacements
+    ORDER BY replacements DESC
+
+- question: Show the 10 most recent failures.
+  cypher: |
+    MATCH (f:Failure)-[:OCCURRED_ON]->(m:Machine), (f)-[:FAILED]->(c:Component)
+    RETURN f.id AS failure, m.id AS machine, c.name AS component, f.ts AS failed_at
+    ORDER BY f.ts DESC
+    LIMIT 10
+
+- question: How many replacements were scheduled versus caused by failures?
+  cypher: |
+    MATCH (e:MaintenanceEvent)
+    RETURN e.reason AS reason, count(e) AS replacements
+
+- question: Which machines have an open alarm and have previously failed on the spindle bearing?
+  cypher: |
+    MATCH (m:Machine)<-[:RAISED_ON]-(:Alarm {status: 'open'})
+    WHERE EXISTS { (m)<-[:OCCURRED_ON]-(:Failure)-[:FAILED]->(:Component {type: 'comp1'}) }
+    RETURN DISTINCT m.id AS machine
+
+- question: Which machine model has had the most failures?
+  cypher: |
+    MATCH (f:Failure)-[:OCCURRED_ON]->(:Machine)-[:IS_MODEL]->(mm:MachineModel)
+    RETURN mm.id AS model, count(f) AS failures
+    ORDER BY failures DESC
+
+- question: List the open alarms with the past failures they resemble.
+  cypher: |
+    MATCH (a:Alarm {status: 'open'})-[:RAISED_ON]->(m:Machine)
+    OPTIONAL MATCH (a)-[s:SIMILAR_TO]->(f:Failure)
+    RETURN a.id AS alarm, m.id AS machine, a.sensor_type AS sensor, a.ts AS raised_at,
+           collect(f.id) AS similar_failures
+    ORDER BY raised_at DESC
+
+- question: Which model3 machines are in plant P1?
+  cypher: |
+    MATCH (:Plant {id: 'P1'})-[:HAS_LINE]->(:ProductionLine)-[:HAS_MACHINE]->(m:Machine)-[:IS_MODEL]->(:MachineModel {id: 'model3'})
+    RETURN m.id AS machine, m.age AS age, m.status AS status
+    ORDER BY machine
+
+- question: Which documents exist about model1?
+  cypher: |
+    MATCH (d:Document {machine_model: 'model1'})
+    RETURN d.title AS title, d.doc_type AS type
+    ORDER BY type, title

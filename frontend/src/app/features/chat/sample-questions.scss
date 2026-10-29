@@ -1,0 +1,38 @@
+:host { display: flex; flex-direction: column; gap: 10px; }
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.tab {
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; cursor: pointer;
+  background: var(--ft-surface-2); color: inherit; border: 1px solid var(--ft-border); font: inherit; font-size: 12px;
+  &:hover { border-color: var(--mat-sys-primary); }
+  &.active { border-color: var(--mat-sys-primary); background: color-mix(in srgb, var(--mat-sys-primary) 18%, var(--ft-surface-2)); }
+}
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ft-down); }
+.dot.cypher { background: #58a6ff; }
+.dot.rag { background: #d2a8ff; }
+.dot.hybrid { background: #7ee787; }
+.desc { margin: 0; font-size: 12.5px; color: var(--ft-text-dim); }
+.note {
+  display: flex; gap: 6px; align-items: flex-start; margin: 0; padding: 6px 8px; border-radius: 6px; font-size: 12px;
+  background: var(--ft-surface-2); border-left: 3px solid var(--ft-warning);
+  mat-icon { flex: none; width: 16px; height: 16px; font-size: 16px; color: var(--ft-warning); }
+}
+ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.item { display: flex; gap: 4px; align-items: stretch; }
+.ask {
+  flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; text-align: left; padding: 8px 10px; border-radius: 8px;
+  background: var(--ft-surface-2); color: inherit; border: 1px solid var(--ft-border); font: inherit; cursor: pointer;
+  &:hover:not(:disabled) { border-color: var(--mat-sys-primary); }
+  &:disabled { opacity: 0.5; cursor: default; }
+}
+.text { font-size: 13px; }
+.expect { font-size: 11px; color: var(--ft-text-dim); }
+.step {
+  align-self: flex-start; display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%;
+  font-size: 11px; font-weight: 700; background: var(--mat-sys-primary); color: var(--mat-sys-on-primary);
+}
+.edit {
+  flex: none; width: 32px; display: grid; place-items: center; border-radius: 8px; cursor: pointer;
+  background: none; color: var(--ft-text-dim); border: 1px solid var(--ft-border);
+  &:hover { color: inherit; border-color: var(--mat-sys-primary); }
+  mat-icon { width: 16px; height: 16px; font-size: 16px; }
+}

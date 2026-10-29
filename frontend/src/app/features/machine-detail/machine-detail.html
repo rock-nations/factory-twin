@@ -1,0 +1,109 @@
+@if (notFound()) {
+  <div class="page"><p class="error">Machine {{ id() }} was not found.</p><a routerLink="/dashboard">Back to dashboard</a></div>
+} @else {
+  <div class="page">
+    <header class="head">
+      <a class="back" routerLink="/dashboard">← Dashboard</a>
+      <h1 class="mono">{{ id() }}</h1>
+      <app-status-badge [status]="status()" />
+      @if (detail(); as d) {
+        <span class="meta">
+          {{ d.machine.model }} · age {{ d.machine.age }} y · {{ d.machine.plant }} / line {{ d.machine.line }}
+          (position {{ d.machine.position_in_line }})
+        </span>
+      }
+      <span class="spacer"></span>
+      <button mat-stroked-button (click)="diagnose()" data-testid="diagnose">Diagnose with copilot</button>
+    </header>
+
+    @if (alarms().length) {
+      <section class="alarms">
+        @for (a of alarms(); track a.id) {
+          <div class="alarm" [class]="a.severity">
+            <strong>{{ a.sensor_type }} {{ a.severity }}</strong>
+            <span>{{ a.message }}</span>
+            @if (a.similar_failures?.length) {
+              <span class="dim">similar: {{ a.similar_failures![0].failure_id }}</span>
+            }
+            @if (a.status === 'open') {
+              <button mat-button (click)="ack(a.id)">Acknowledge</button>
+            } @else {
+              <span class="dim">acknowledged</span>
+            }
+          </div>
+        }
+      </section>
+    }
+
+    <section class="sensors">
+      @for (name of sensorNames; track name) {
+        @if (sensor(name); as s) {
+          <div class="card">
+            <app-sensor-gauge [sensor]="s" />
+            <app-line-chart
+              class="chart"
+              [points]="series()[name]"
+              [unit]="s.unit"
+              [warnHigh]="s.warn_high"
+              [critHigh]="s.crit_high"
+              [warnLow]="s.warn_low"
+              [critLow]="s.crit_low"
+            />
+          </div>
+        }
+      }
+    </section>
+
+    <div class="cols">
+      <section class="card">
+        <h3>Components</h3>
+        <table>
+          <thead><tr><th>Component</th><th>Last replaced</th></tr></thead>
+          <tbody>
+            @for (c of detail()?.components ?? []; track c.type) {
+              <tr><td>{{ c.component }}</td><td class="mono">{{ c.last_replaced ? (c.last_replaced | date: 'yyyy-MM-dd') : '—' }}</td></tr>
+            }
+          </tbody>
+        </table>
+
+        <h3>Recent maintenance</h3>
+        <table>
+          <thead><tr><th>When</th><th>Component</th><th>Reason</th><th>Technician</th></tr></thead>
+          <tbody>
+            @for (m of detail()?.recent_maintenance ?? []; track m.ts + m.component) {
+              <tr>
+                <td class="mono">{{ m.ts | date: 'yyyy-MM-dd' }}</td>
+                <td>{{ m.component }}</td>
+                <td>{{ m.reason }}</td>
+                <td>{{ m.technician ?? '—' }}</td>
+              </tr>
+            } @empty {
+              <tr><td colspan="4" class="dim">No maintenance recorded.</td></tr>
+            }
+          </tbody>
+        </table>
+      </section>
+
+      <section class="card">
+        <h3>Material flow</h3>
+        <div class="flow">
+          <div>
+            <h4>Upstream</h4>
+            @for (u of detail()?.upstream ?? []; track u.machine) {
+              <a class="pill mono" [class]="u.status" [routerLink]="['/machines', u.machine]">{{ u.machine }}<small> {{ u.line }} · {{ u.hops }}↑</small></a>
+            } @empty { <span class="dim">none</span> }
+          </div>
+          <div>
+            <h4>Downstream</h4>
+            @for (d of detail()?.downstream ?? []; track d.machine) {
+              <a class="pill mono" [class]="d.status" [routerLink]="['/machines', d.machine]">{{ d.machine }}<small> {{ d.line }} · {{ d.hops }}↓</small></a>
+            } @empty { <span class="dim">none</span> }
+          </div>
+        </div>
+        <h3>Neighbourhood</h3>
+        <app-graph-view class="graph" [graph]="graph()" (nodeExpand)="expand($event)" />
+        <p class="dim hint">Double-click a node to expand it.</p>
+      </section>
+    </div>
+  </div>
+}

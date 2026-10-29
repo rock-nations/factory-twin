@@ -1,0 +1,25 @@
+# secrets / env
+.env
+
+# data & runtime state
+data/raw/*
+!data/raw/.gitkeep
+.neo4j/
+
+# python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# node
+node_modules/
+frontend/dist/
+frontend/.angular/
+
+# OS / editor
+.DS_Store
+.idea/
+.cache/

@@ -1,0 +1,34 @@
+services:
+  neo4j:
+    image: neo4j:2026.10.1        # Community Edition (pinned after first run)
+    ports: ["7474:7474", "7687:7687"]
+    environment:
+      NEO4J_AUTH: neo4j/${NEO4J_PASSWORD}
+      NEO4J_PLUGINS: '["apoc"]'
+      NEO4J_server_memory_heap_max__size: 1G
+      NEO4J_server_memory_pagecache_size: 512M
+    volumes: ["./.neo4j/data:/data", "./.neo4j/logs:/logs"]
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:7474 >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+  mosquitto:
+    image: eclipse-mosquitto:2
+    ports: ["1883:1883"]
+    volumes: ["./infra/mosquitto.conf:/mosquitto/config/mosquitto.conf"]
+
+  # Throwaway instance for integration tests: `docker compose --profile test up -d neo4j-test`
+  neo4j-test:
+    profiles: ["test"]
+    image: neo4j:2026.10.1
+    ports: ["7688:7687"]
+    environment:
+      NEO4J_AUTH: neo4j/test-password
+      NEO4J_server_memory_heap_max__size: 512M
+      NEO4J_server_memory_pagecache_size: 256M
+  mosquitto-test:
+    profiles: ["test"]
+    image: eclipse-mosquitto:2
+    ports: ["1884:1883"]
+    volumes: ["./infra/mosquitto.conf:/mosquitto/config/mosquitto.conf"]

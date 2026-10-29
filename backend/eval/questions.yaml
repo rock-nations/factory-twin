@@ -1,0 +1,349 @@
+# Evaluation set: 45 questions (15 per type). See eval/run_eval.py for how each field is scored.
+#   expected_route         route the orchestrator should pick (cypher | rag | hybrid)
+#   gold_cypher            reference query; the generated query's result set is compared with its own
+#   mention_from_gold      answer must mention values from the gold result (first column)
+#   must_mention           keywords the answer must contain (case-insensitive)
+#   expected_sources_any   at least one of these document ids must be retrieved in the top 5
+#   expected_tools         tools that must have been called
+# These questions deliberately differ from the few-shot examples in retrieval/cypher_examples.yaml.
+
+# ---- Text2Cypher ---------------------------------------------------------------------------
+- id: c01
+  type: cypher
+  expected_route: cypher
+  question: How many machines does each plant have?
+  gold_cypher: |
+    MATCH (p:Plant)-[:HAS_LINE]->(:ProductionLine)-[:HAS_MACHINE]->(m:Machine)
+    RETURN p.name AS plant, count(m) AS machines
+  mention_from_gold: true
+
+- id: c02
+  type: cypher
+  expected_route: cypher
+  question: How many model2 machines are on line B3?
+  gold_cypher: |
+    MATCH (:ProductionLine {id: 'B3'})-[:HAS_MACHINE]->(m:Machine)-[:IS_MODEL]->(:MachineModel {id: 'model2'})
+    RETURN count(m) AS machines
+  mention_from_gold: true
+
+- id: c03
+  type: cypher
+  expected_route: cypher
+  question: What is the highest machine age in the factory?
+  gold_cypher: |
+    MATCH (m:Machine) RETURN max(m.age) AS oldest
+  mention_from_gold: true
+
+- id: c04
+  type: cypher
+  expected_route: cypher
+  question: How many failures has M042 had in total?
+  gold_cypher: |
+    MATCH (f:Failure)-[:OCCURRED_ON]->(:Machine {id: 'M042'}) RETURN count(f) AS failures
+  mention_from_gold: true
+
+- id: c05
+  type: cypher
+  expected_route: cypher
+  question: Which component type has failed most often overall?
+  gold_cypher: |
+    MATCH (f:Failure)-[:FAILED]->(c:Component)
+    RETURN c.name AS component, count(f) AS failures ORDER BY failures DESC LIMIT 1
+  mention_from_gold: true
+
+- id: c06
+  type: cypher
+  expected_route: cypher
+  question: How many error3 events were recorded in the historical data?
+  gold_cypher: |
+    MATCH (e:ErrorEvent {source: 'kaggle'})-[:OF_TYPE]->(:ErrorType {id: 'error3'}) RETURN count(e) AS events
+  mention_from_gold: true
+
+- id: c07
+  type: cypher
+  expected_route: cypher
+  question: Which technicians work the night shift?
+  gold_cypher: |
+    MATCH (t:Technician {shift: 'night'}) RETURN t.name AS technician
+  mention_from_gold: true
+
+- id: c08
+  type: cypher
+  expected_route: cypher
+  question: Which machines feed directly into M050?
+  gold_cypher: |
+    MATCH (u:Machine)-[:FEEDS_INTO]->(:Machine {id: 'M050'}) RETURN u.id AS machine
+  mention_from_gold: true
+
+- id: c09
+  type: cypher
+  expected_route: cypher
+  question: How many machines are downstream of M010 within two hops?
+  gold_cypher: |
+    MATCH (:Machine {id: 'M010'})-[:FEEDS_INTO*1..2]->(d:Machine) RETURN count(DISTINCT d) AS machines
+  mention_from_gold: true
+
+- id: c10
+  type: cypher
+  expected_route: cypher
+  question: How many replacements were caused by a failure rather than scheduled maintenance?
+  gold_cypher: |
+    MATCH (e:MaintenanceEvent {reason: 'failure'}) RETURN count(e) AS replacements
+  mention_from_gold: true
+
+- id: c11
+  type: cypher
+  expected_route: cypher
+  question: How many failures happened in July 2015?
+  gold_cypher: |
+    MATCH (f:Failure) WHERE f.ts >= datetime('2015-07-01') AND f.ts < datetime('2015-08-01') RETURN count(f) AS failures
+  mention_from_gold: true
+
+- id: c12
+  type: cypher
+  expected_route: cypher
+  question: Which machines on line A1 are model4?
+  gold_cypher: |
+    MATCH (:ProductionLine {id: 'A1'})-[:HAS_MACHINE]->(m:Machine)-[:IS_MODEL]->(:MachineModel {id: 'model4'})
+    RETURN m.id AS machine
+  mention_from_gold: true
+
+- id: c13
+  type: cypher
+  expected_route: cypher
+  question: How many production lines does the Leipzig plant have?
+  gold_cypher: |
+    MATCH (:Plant {id: 'P2'})-[:HAS_LINE]->(l:ProductionLine) RETURN count(l) AS lines
+  mention_from_gold: true
+
+- id: c14
+  type: cypher
+  expected_route: cypher
+  question: What is the average age of model1 machines?
+  gold_cypher: |
+    MATCH (m:Machine)-[:IS_MODEL]->(:MachineModel {id: 'model1'}) RETURN avg(m.age) AS avg_age
+  mention_from_gold: true
+
+- id: c15
+  type: cypher
+  expected_route: cypher
+  question: Which technician replaced the most spindle bearings?
+  gold_cypher: |
+    MATCH (t:Technician)<-[:PERFORMED_BY]-(:MaintenanceEvent)-[:REPLACED]->(c:Component {type: 'comp1'})
+    RETURN t.name AS technician, count(*) AS replacements ORDER BY replacements DESC LIMIT 1
+  mention_from_gold: true
+
+# ---- Vector RAG ----------------------------------------------------------------------------
+- id: r01
+  type: rag
+  expected_route: rag
+  question: How do I replace a spindle bearing?
+  expected_sources_any: [sop-comp1]
+  must_mention: [bearing]
+
+- id: r02
+  type: rag
+  expected_route: rag
+  question: What safety steps apply before coolant valve work?
+  expected_sources_any: [sop-comp4]
+  must_mention: [coolant]
+
+- id: r03
+  type: rag
+  expected_route: rag
+  question: What does error3 usually indicate?
+  expected_sources_any: [troubleshooting-error3]
+  must_mention: [error3]
+
+- id: r04
+  type: rag
+  expected_route: rag
+  question: What is the normal pressure range for model2?
+  expected_sources_any: [manual-model2]
+  must_mention: [pressure]
+
+- id: r05
+  type: rag
+  expected_route: rag
+  question: How often should the hydraulic pump be replaced?
+  expected_sources_any: [sop-comp2, manual-model1, manual-model2, manual-model3, manual-model4]
+  must_mention: [pump, days]
+
+- id: r06
+  type: rag
+  expected_route: rag
+  question: How long does replacing the drive motor take?
+  expected_sources_any: [sop-comp3]
+  must_mention: [hours]
+
+- id: r07
+  type: rag
+  expected_route: rag
+  question: What are the warning and critical thresholds for vibration on model4?
+  expected_sources_any: [manual-model4]
+  must_mention: [vibration]
+
+- id: r08
+  type: rag
+  expected_route: rag
+  question: What does error1 mean and how do I troubleshoot it?
+  expected_sources_any: [troubleshooting-error1]
+  must_mention: [error1]
+
+- id: r09
+  type: rag
+  expected_route: rag
+  question: Which tools do I need to swap a coolant valve?
+  expected_sources_any: [sop-comp4]
+  must_mention: [valve]
+
+- id: r10
+  type: rag
+  expected_route: rag
+  question: How do I verify the drive motor after replacing it?
+  expected_sources_any: [sop-comp3]
+  must_mention: [motor]
+
+- id: r11
+  type: rag
+  expected_route: rag
+  question: What are the common issues on model3 machines?
+  expected_sources_any: [manual-model3]
+  must_mention: [model3]
+
+- id: r12
+  type: rag
+  expected_route: rag
+  question: What is error5 and which components tend to fail after it?
+  expected_sources_any: [troubleshooting-error5]
+  must_mention: [error5]
+
+- id: r13
+  type: rag
+  expected_route: rag
+  question: What is the recommended replacement interval for the spindle bearing on model1?
+  expected_sources_any: [manual-model1, sop-comp1]
+  must_mention: [bearing, days]
+
+- id: r14
+  type: rag
+  expected_route: rag
+  question: What are the troubleshooting steps for error2?
+  expected_sources_any: [troubleshooting-error2]
+  must_mention: [error2]
+
+- id: r15
+  type: rag
+  expected_route: rag
+  question: How do I bleed the hydraulic pump after installing it?
+  expected_sources_any: [sop-comp2]
+  must_mention: [pump]
+
+# ---- Hybrid GraphRAG -----------------------------------------------------------------------
+- id: h01
+  type: hybrid
+  expected_route: hybrid
+  question: Diagnose M017.
+  expected_tools: [get_machine_context]
+  must_mention: [M017]
+
+- id: h02
+  type: hybrid
+  expected_route: hybrid
+  question: M055 shows high vibration. Have we seen this before and what fixed it?
+  expected_tools: [find_similar_incidents]
+  must_mention: [M055, vibration]
+
+- id: h03
+  type: hybrid
+  expected_route: hybrid
+  question: If M030 goes down, which lines are affected and what is the procedure to restore it?
+  expected_tools: [get_machine_context]
+  must_mention: [M030]
+
+- id: h04
+  type: hybrid
+  expected_route: hybrid
+  question: Machine 23 keeps raising error codes. What do they mean, and what happened on it before?
+  expected_tools: [search_knowledge_base]
+  must_mention: [M023]
+
+- id: h05
+  type: hybrid
+  expected_route: hybrid
+  question: What is downstream of M012 and how do I replace its spindle bearing?
+  expected_tools: [get_machine_context]
+  expected_sources_any: [sop-comp1]
+  must_mention: [M012, bearing]
+
+- id: h06
+  type: hybrid
+  expected_route: hybrid
+  question: M040 runs hot on pressure. Is that normal for its model, and has a similar machine failed?
+  expected_tools: [get_machine_context]
+  must_mention: [M040, pressure]
+
+- id: h07
+  type: hybrid
+  expected_route: hybrid
+  question: Which technician most recently worked on M008 and what does the SOP say about that component?
+  expected_tools: [search_knowledge_base]
+  must_mention: [M008]
+
+- id: h08
+  type: hybrid
+  expected_route: hybrid
+  question: Machine 61 had a hydraulic pump replaced recently. What is the procedure and what failed on similar machines?
+  expected_tools: [search_knowledge_base]
+  expected_sources_any: [sop-comp2]
+  must_mention: [M061, pump]
+
+- id: h09
+  type: hybrid
+  expected_route: hybrid
+  question: How is M077 doing right now, and what should I check first if its vibration rises?
+  expected_tools: [get_machine_context]
+  must_mention: [M077, vibration]
+
+- id: h10
+  type: hybrid
+  expected_route: hybrid
+  question: What would be affected if M025 failed, and which failure on similar machines should I compare it with?
+  expected_tools: [get_machine_context]
+  must_mention: [M025]
+
+- id: h11
+  type: hybrid
+  expected_route: hybrid
+  question: Compare the maintenance history of M033 with what the manual recommends for its model.
+  expected_tools: [search_knowledge_base]
+  must_mention: [M033]
+
+- id: h12
+  type: hybrid
+  expected_route: hybrid
+  question: Which machines on line B2 are older than 10 years, and what does the manual say about maintaining older units?
+  expected_tools: [query_twin_data, search_knowledge_base]
+  must_mention: [B2]
+
+- id: h13
+  type: hybrid
+  expected_route: hybrid
+  question: M091 vibrates more than usual. What is the likely cause, what was done in comparable incidents, and what is downstream of it?
+  expected_tools: [get_machine_context, find_similar_incidents]
+  must_mention: [M091]
+
+- id: h14
+  type: hybrid
+  expected_route: hybrid
+  question: How many failures did the machines downstream of M005 have, and what usually causes them?
+  expected_tools: [query_twin_data]
+  must_mention: [M005]
+
+- id: h15
+  type: hybrid
+  expected_route: hybrid
+  question: For M066, summarise its current state and the steps to restore its coolant valve if it fails.
+  expected_tools: [get_machine_context, search_knowledge_base]
+  expected_sources_any: [sop-comp4]
+  must_mention: [M066, coolant]

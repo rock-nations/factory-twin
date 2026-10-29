@@ -1,0 +1,32 @@
+:host { display: block; }
+.msg { max-width: 100%; padding: 9px 12px; border-radius: 10px; line-height: 1.5; font-size: 13.5px; }
+.user { margin-left: 36px; background: color-mix(in srgb, var(--mat-sys-primary) 22%, var(--ft-surface-2)); }
+.assistant { background: var(--ft-surface-2); }
+.proactive { background: color-mix(in srgb, var(--ft-warning) 12%, var(--ft-surface-2)); border: 1px solid color-mix(in srgb, var(--ft-warning) 50%, transparent); }
+.error { background: color-mix(in srgb, var(--ft-alarm) 14%, var(--ft-surface-2)); color: var(--ft-error-text); }
+.plain { margin: 0; white-space: pre-wrap; }
+.tag { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ft-warning); margin-bottom: 3px; font-weight: 600; }
+.dim, .thinking { color: var(--ft-text-dim); }
+.steps { list-style: none; margin: 6px 0; padding: 0; font-size: 12px; color: var(--ft-text-dim); }
+.steps .done .mark { color: var(--ft-running); }
+.actions { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+.actions button {
+  background: transparent; color: var(--mat-sys-primary); border: 1px solid var(--mat-sys-primary); border-radius: 999px;
+  padding: 3px 12px; font: inherit; font-size: 12px; cursor: pointer;
+  &:hover { background: color-mix(in srgb, var(--mat-sys-primary) 15%, transparent); }
+}
+.md {
+  overflow-wrap: anywhere;
+  ::ng-deep {
+    p { margin: 0 0 8px; }
+    p:last-child { margin-bottom: 0; }
+    ul, ol { margin: 4px 0 8px; padding-left: 20px; }
+    a { color: var(--mat-sys-primary); }
+    code { font-family: var(--ft-font-mono); font-size: 12px; background: var(--ft-bg); padding: 1px 4px; border-radius: 3px; }
+    pre { background: var(--ft-bg); padding: 8px 10px; border-radius: 6px; overflow-x: auto; }
+    pre code { padding: 0; background: none; }
+    table { border-collapse: collapse; margin: 6px 0; font-size: 12px; display: block; overflow-x: auto; }
+    th, td { border: 1px solid var(--ft-border); padding: 3px 8px; text-align: left; white-space: nowrap; }
+    th { background: var(--ft-surface); }
+  }
+}

@@ -1,0 +1,52 @@
+<div class="wrap">
+  <header class="bar">
+    <form (submit)="$event.preventDefault(); submit()" class="search">
+      <input class="mono" name="node" [ngModel]="query()" (ngModelChange)="query.set($event)" placeholder="node id, e.g. M017, A2, model3" aria-label="Node id" data-testid="node-input" />
+      <button mat-flat-button type="submit">Load</button>
+    </form>
+    <label class="depth">
+      depth
+      <select [ngModel]="depth()" (ngModelChange)="setDepth(+$event)" name="depth" aria-label="Depth">
+        <option [ngValue]="1">1</option>
+        <option [ngValue]="2">2</option>
+      </select>
+    </label>
+    <div class="legend">
+      @for (l of legend; track l[0]) {
+        <span><i [style.background]="l[1]"></i>{{ l[0] }}</span>
+      }
+    </div>
+  </header>
+
+  @if (error(); as e) {
+    <p class="error">{{ e }}</p>
+  }
+
+  <div class="body">
+    <app-graph-view class="canvas" [graph]="graph()" [selectedId]="selectedId()" (nodeSelect)="select($event)" (nodeExpand)="expand($event)" />
+
+    <aside class="panel" data-testid="node-panel">
+      @if (selected(); as n) {
+        <h3>{{ n.caption }}</h3>
+        <p class="label">{{ n.label }} · <span class="mono">{{ n.id }}</span></p>
+        <dl>
+          @for (p of n.properties | keyvalue; track p.key) {
+            <dt>{{ p.key }}</dt>
+            <dd class="mono">{{ p.value }}</dd>
+          }
+        </dl>
+        <div class="actions">
+          <button mat-stroked-button (click)="expand(n.id)">Expand neighbours</button>
+          @if (n.label === 'Machine') {
+            <a mat-button [routerLink]="['/machines', n.id]">Open machine</a>
+          }
+        </div>
+      } @else {
+        <p class="dim">Click a node for details. Double-click to expand it.</p>
+      }
+      @if (graph()?.truncated) {
+        <p class="dim">Showing a subset: the neighbourhood was capped at 150 nodes.</p>
+      }
+    </aside>
+  </div>
+</div>

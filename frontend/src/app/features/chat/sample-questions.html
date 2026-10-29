@@ -1,0 +1,38 @@
+<div class="tabs" role="tablist" aria-label="Question categories">
+  @for (c of categories; track c.id) {
+    <button
+      type="button"
+      role="tab"
+      class="tab"
+      [class.active]="c.id === selectedId()"
+      [attr.aria-selected]="c.id === selectedId()"
+      [attr.data-testid]="'sample-tab-' + c.id"
+      (click)="selectedId.set(c.id)"
+    >
+      <span class="dot" [class]="c.route"></span>{{ c.label }}
+    </button>
+  }
+</div>
+
+<div class="body" role="tabpanel" data-testid="sample-panel">
+  <p class="desc">{{ selected().description }}</p>
+  @if (selected().note) {
+    <p class="note"><mat-icon>info</mat-icon>{{ selected().note }}</p>
+  }
+  <ul>
+    @for (q of selected().questions; track q.text; let i = $index) {
+      <li class="item">
+        <button type="button" class="ask" [disabled]="disabled()" (click)="ask.emit(q.text)" data-testid="sample-ask">
+          @if (selected().ordered) {
+            <span class="step">{{ i + 1 }}</span>
+          }
+          <span class="text">{{ q.text }}</span>
+          <span class="expect">Expect: {{ q.expect }}</span>
+        </button>
+        <button type="button" class="edit" (click)="edit.emit(q.text)" aria-label="Edit before sending" title="Edit before sending" data-testid="sample-edit">
+          <mat-icon>edit</mat-icon>
+        </button>
+      </li>
+    }
+  </ul>
+</div>

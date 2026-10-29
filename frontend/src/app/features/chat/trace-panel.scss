@@ -1,0 +1,29 @@
+:host { display: block; }
+.trace { margin-top: 8px; border: 1px solid var(--ft-border); border-radius: 6px; background: var(--ft-bg); font-size: 12px; }
+summary { cursor: pointer; padding: 6px 10px; display: flex; align-items: center; gap: 10px; list-style: none; }
+summary::-webkit-details-marker { display: none; }
+summary::before { content: '▸'; color: var(--ft-text-dim); }
+details[open] > summary::before { content: '▾'; }
+.title { font-weight: 600; }
+.meta { margin-left: auto; color: var(--ft-text-dim); }
+.body { padding: 4px 12px 12px; border-top: 1px solid var(--ft-border); }
+.dim { color: var(--ft-text-dim); }
+.stats { display: grid; grid-template-columns: auto 1fr; gap: 3px 14px; margin: 8px 0; }
+.stats dt { color: var(--ft-text-dim); }
+.stats dd { margin: 0; }
+.tool { padding: 8px 0; border-top: 1px dashed var(--ft-border); }
+.tool.failed .summary { color: var(--ft-alarm); }
+.tool h4 { margin: 0 0 3px; display: flex; gap: 8px; align-items: baseline; font-size: 12px; }
+.n { display: inline-grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; background: var(--ft-surface-2); font-size: 10px; }
+.args { word-break: break-all; font-size: 11px; }
+.code { position: relative; margin: 6px 0; }
+.code pre { margin: 0; padding: 8px 10px; background: var(--ft-surface); border-radius: 4px; overflow-x: auto; }
+.code code { font-family: var(--ft-font-mono); font-size: 11px; white-space: pre; }
+.copy { position: absolute; top: 4px; right: 4px; font-size: 10px; padding: 1px 7px; background: var(--ft-surface-2); color: inherit; border: 1px solid var(--ft-border); border-radius: 4px; cursor: pointer; }
+.tablewrap { overflow-x: auto; max-height: 220px; margin-top: 6px; }
+table { border-collapse: collapse; width: 100%; }
+th { text-align: left; color: var(--ft-text-dim); font-weight: 500; padding: 3px 8px 3px 0; white-space: nowrap; }
+td { padding: 3px 8px 3px 0; border-top: 1px solid var(--ft-border); white-space: nowrap; }
+.sources-h { margin: 12px 0 4px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ft-text-dim); }
+.sources { margin: 0; padding-left: 0; list-style: none; }
+.calls td, .calls th { padding-right: 12px; }

@@ -1,0 +1,37 @@
+.page { padding: 20px 24px 48px; max-width: 1400px; }
+.dim { color: var(--ft-text-dim); }
+.error { color: var(--ft-alarm); }
+.head { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; flex-wrap: wrap; }
+.head h1 { margin: 0; font-size: 26px; font-weight: 500; }
+.back { color: var(--ft-text-dim); text-decoration: none; font-size: 13px; }
+.meta { color: var(--ft-text-dim); font-size: 13px; }
+.spacer { flex: 1; }
+
+.alarms { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.alarm { display: flex; align-items: center; gap: 14px; padding: 8px 14px; border-radius: 6px; border: 1px solid; font-size: 13px; }
+.alarm.critical { border-color: var(--ft-alarm); background: color-mix(in srgb, var(--ft-alarm) 10%, transparent); }
+.alarm.warning { border-color: var(--ft-warning); background: color-mix(in srgb, var(--ft-warning) 10%, transparent); }
+.alarm strong { text-transform: capitalize; }
+
+.sensors { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 14px; margin-bottom: 14px; }
+.card { background: var(--ft-surface); border: 1px solid var(--ft-border); border-radius: 8px; padding: 14px 16px; }
+.card .chart { height: 170px; margin-top: 10px; }
+.card h3 { margin: 4px 0 8px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ft-text-dim); font-weight: 600; }
+.card h3:not(:first-child) { margin-top: 22px; }
+
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 1100px) { .cols { grid-template-columns: 1fr; } }
+
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; font-weight: 500; color: var(--ft-text-dim); font-size: 11px; text-transform: uppercase; padding: 4px 8px 4px 0; }
+td { padding: 5px 8px 5px 0; border-top: 1px solid var(--ft-border); }
+
+.flow { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.flow h4 { margin: 0 0 6px; font-size: 12px; color: var(--ft-text-dim); font-weight: 500; }
+.pill { display: inline-block; margin: 0 6px 6px 0; padding: 3px 9px; border-radius: 999px; font-size: 12px; text-decoration: none; color: inherit; border: 1px solid var(--ft-running); }
+.pill.warning { border-color: var(--ft-warning); }
+.pill.alarm { border-color: var(--ft-alarm); background: color-mix(in srgb, var(--ft-alarm) 14%, transparent); }
+.pill.down { border-color: var(--ft-down); }
+.pill small { color: var(--ft-text-dim); }
+.graph { height: 320px; background: var(--ft-bg); border-radius: 6px; }
+.hint { font-size: 11px; margin: 6px 0 0; }

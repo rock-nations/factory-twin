@@ -1,0 +1,46 @@
+<mat-toolbar class="topbar">
+  <mat-icon class="logo">factory</mat-icon>
+  <span class="brand">FactoryTwin <span class="dim">Copilot</span></span>
+  <span class="spacer"></span>
+  @if (openAlarmCount() > 0) {
+    <a class="alarm-pill" routerLink="/dashboard" data-testid="alarm-count">
+      <mat-icon>notifications_active</mat-icon>{{ openAlarmCount() }} open
+    </a>
+  }
+  <span class="health" data-testid="backend-health">
+    <app-status-dot [tone]="backendTone()" />
+    <span class="mono">{{ backendLabel() }}</span>
+  </span>
+  <button mat-icon-button [attr.aria-label]="ui.theme() === 'light' ? 'Switch to dark theme' : 'Switch to light theme'"
+          [title]="ui.theme() === 'light' ? 'Dark theme' : 'Light theme'" (click)="ui.toggleTheme()" data-testid="theme-toggle">
+    <mat-icon>{{ ui.theme() === 'light' ? 'dark_mode' : 'light_mode' }}</mat-icon>
+  </button>
+  <button mat-icon-button aria-label="Toggle chat" (click)="toggleChat()" data-testid="chat-toggle"
+          [matBadge]="chat.unread() || null" matBadgeColor="warn" matBadgeSize="small">
+    <mat-icon>{{ ui.chatOpen() ? 'chat_bubble' : 'chat_bubble_outline' }}</mat-icon>
+  </button>
+</mat-toolbar>
+
+<mat-sidenav-container class="shell">
+  <mat-sidenav mode="side" opened class="nav">
+    <nav>
+      @for (item of nav; track item.path) {
+        <a [routerLink]="item.path" routerLinkActive="active">
+          <mat-icon>{{ item.icon }}</mat-icon>
+          <span>{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+    <div class="sim-state" [class]="factory.simStatus().state">
+      <span class="dot"></span> simulator {{ factory.simStatus().state }}
+    </div>
+  </mat-sidenav>
+
+  <mat-sidenav position="end" mode="side" class="chat" [style.width.px]="ui.chatWidth()" [opened]="ui.chatOpen()" (closedStart)="ui.chatOpen.set(false)">
+    <app-chat-drawer />
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <router-outlet />
+  </mat-sidenav-content>
+</mat-sidenav-container>

@@ -1,0 +1,55 @@
+@use '@angular/material' as mat;
+
+// Light theme by default with a dark option: status colours are semantic, the rest stays neutral.
+:root {
+  // light by default; the toolbar toggle sets `color-scheme` on <html> to switch
+  color-scheme: light dark;
+  --ft-bg: light-dark(#f4f6f9, #0e1116);
+  --ft-surface: light-dark(#ffffff, #161b22);
+  --ft-surface-2: light-dark(#eef1f5, #1c232c);
+  --ft-border: light-dark(#d5dbe3, #2a323d);
+  --ft-border-strong: light-dark(#9aa5b4, #4b5666);
+  --ft-text-dim: light-dark(#59636f, #8b97a7);
+  --ft-running: light-dark(#1a7f37, #3fb950);
+  --ft-warning: light-dark(#a86a00, #d29922);
+  --ft-alarm: light-dark(#cf222e, #f85149);
+  --ft-down: light-dark(#8c959f, #6e7681);
+  --ft-error-text: light-dark(#a40e26, #ffb3ae);
+  --ft-font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+html {
+  height: 100%;
+  @include mat.theme(
+    (
+      color: (
+        theme-type: color-scheme,
+        primary: mat.$azure-palette,
+        tertiary: mat.$cyan-palette,
+      ),
+      typography: (
+        plain-family: 'IBM Plex Sans',
+        brand-family: 'IBM Plex Sans',
+      ),
+      density: -1,
+    )
+  );
+}
+
+body {
+  background-color: var(--ft-bg);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+  margin: 0;
+  height: 100%;
+}
+
+.mono {
+  font-family: var(--ft-font-mono);
+}
+
+.alarm-toast {
+  --mat-snack-bar-container-color: var(--ft-surface-2);
+  --mat-snack-bar-supporting-text-color: var(--mat-sys-on-surface);
+  border-left: 4px solid var(--ft-alarm);
+}

@@ -90,21 +90,6 @@ Open <http://localhost:4200>. Ingestion is idempotent: re-running creates no dup
 changed documents. Generated documents are meant to be committed (`data/generated/docs/`) so others do
 not have to regenerate them.
 
-## Demo script (3 minutes)
-
-1. **Dashboard**: 2 plants, 8 lines, 100 machines; start the simulator from the *Simulator* page and
-   watch tiles update.
-2. Chat: *Which machines on Line A2 have open alarms?* → generated Cypher, table, plain-English answer.
-3. Chat: *How do I replace a worn spindle bearing on a model3 machine?* → answer with cited sources.
-4. *Simulator* → **Inject anomaly** on M017 (vibration). An alarm toast appears within seconds and the
-   chat posts a proactive warning.
-5. Chat: *Machine 17 is vibrating. What's the likely cause and what's affected downstream?* → live
-   readings + similar incidents + manual + downstream machines.
-6. Open **How I answered** under any reply.
-
-Before a demo: stop the simulator and press **Reset live state** (clears alarms, sets every machine back
-to `running`; structure, history, documents and embeddings are untouched).
-
 ## Development
 
 ```bash
